@@ -1,0 +1,11 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chebyshev_hofbauer_resonances"
+version = "0.2"
+dependencies = []
+
+[tool.setuptools.packages.find]
+where = ["src"]
