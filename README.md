@@ -1,5 +1,5 @@
 # Optimal Policy Selection Under Bilateral Preferences
-This is a short research project undertaken independently out of general interest and boredom. This repository is not a polished Python package, nor is the accompanying paper complete or peer-reviewed. It is a collection of exploratory ideas, many of which are unrefined or incomplete. The code is provided as part of the development process and is not intended for reuse by others.
+This is an independent research project, undertaken out of personal interest and curiosity. The repository is not a polished Python package, and the accompanying paper is incomplete and unreviewed. It contains exploratory ideas-many of which are rough or unfinished. The code reflects the development process and is not intended for reuse.
 
 ## Project Overview
 Many situations involve a selection of policies that affect two subgroups or agents differently. Examples range from economic policies impacting different parties to household decisions affecting members of a couple or roommates. These decisions are typically binary—for instance, an economic policy may be passed or rejected, or a household decision may favor one member’s
@@ -51,7 +51,7 @@ optimal-bilateral-preferences/
 ---
 
 ## Disclamer
-This repository contains research-style code and is not intended as a Python package. It utilizes several freely licensed packages for analysis. This project is a side endeavor, completed over a few weeks, aiming to address a specific question the authors pondered. It does not claim to present novel ideas, nor does it extensively research existing solutions to similar problems. No claim is made regarding the work's importance, interest, or novelty. It was not written with the intention of being made publicly available.
+This is research-grade code, not a production package. It was completed over a few weeks to explore a specific question of interest. The project does not aim to be novel or comprehensive and was not initially intended for public release. It uses various freely available Python packages under open licenses.
 
 ---
 
