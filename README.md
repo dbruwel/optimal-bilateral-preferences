@@ -1,5 +1,7 @@
 # Optimal Bilateral Preferences
 
+> **A note on how this was made**: I wrote the original code and analysis in 2025. In October 2026 I came back to it to clean up and, with help from AI tools, restructured it into a package, added tests, docstrings and this write-up, so that anyone reading it can follow what I was thinking. That's why a large part of the repo arrives in one large commit. The ideas, original code and logic, results, and any mistakes are mine.
+
 This started when moving in with someone. There are lots of little decisions (where the couch goes, where the pots live) and it's easy for whoever has stronger opinions to win every one of them, so the other person isn't generally happy with how things end up. So, given a list of yes/no decisions and how two people feel about each, which split is best for *both* of them?
 
 The same thing applies to anything with two sides picking between a bunch of options, like policies affecting two groups.
