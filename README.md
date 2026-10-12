@@ -1,62 +1,121 @@
-# Optimal Policy Selection Under Bilateral Preferences
-**This project is a work in progress.**
+# Optimal Bilateral Preferences
 
-This is an independent research project, undertaken out of personal interest and curiosity. The repository is not a polished Python package, and the accompanying paper is incomplete and unreviewed. It contains exploratory ideas-many of which are rough or unfinished. The code reflects the development process and is not intended for reuse.
+This started when moving in with someone. There are loads of little decisions (where the couch goes, where the pots live) and it's easy for whoever has stronger opinions to win every one of them, so the other person isn't generally happy with how things end up. So: given a list of yes/no decisions and how two people feel about each, which split is best for *both* of them?
 
-## Project Overview
-Many situations involve a selection of policies that affect two subgroups or agents differently. Examples range from economic policies impacting different parties to household decisions affecting members of a couple or roommates. These decisions are typically binary—for instance, an economic policy may be passed or rejected, or a household decision may favor one member’s
-preference over another’s. In this note, we analyze the problem of finding the optimal subset of policies to select. We propose a simple objective function and examine greedy algorithms, brute force, continuous approximations, and other methods. We show that the greedy algorithm is optimal for a broad class of problems, making brute force approaches unnecessary.
+The same thing applies to anything with two sides picking between a bunch of options, like policies affecting two groups.
 
----
+**Summary:** maximise the product of their scores (Nash welfare) on the scores people actually give. If one person is relaxed because they genuinely don't mind, that already gives a sensible split. If they do mind but don't say so, normalising each person (0 is their worst case, 1 is their best) evens things out, but it's a modelling choice with some real downsides, so it's an option rather than the default. Actually finding the best split is easy. Brute force works up to ~20 decisions and greedy is near enough optimal past that.
 
-## Background and Motivation
-The initial inspiration for this work stemmed from the common experience of couples moving in together. In such scenarios, numerous minor preferences and issues often differ between individuals — for example, the placement of pots and pans, the bed, or the couch. Frequently, one partner may hold stronger opinions on these matters, leading them to make most of the decisions. However, this can inadvertently make the other partner feel less at home, simply because they expressed less intense preferences. This project aimed to formulate a method to ensure both members of a couple feel heard and satisfied.
+![Moving in: on the raw scale the relaxed person barely gets anything, normalised they both do about as well](notes/img/moving-in.png)
 
-As the problem was formulated, it became clear that this scenario is analogous to many other two-party systems. In these systems, a "naive optimal solution" — simply choosing the option that is most significantly preferred — can lead to all decisions consistently favoring one side. For instance, in politics, bills are passed based on a majority vote. While this ensures that most passed bills benefit the majority, it can inadvertently neglect the interests of smaller groups.
+The full write-up is in [notes/findings.md](notes/findings.md), and the notebook [notebooks/main.ipynb](notebooks/main.ipynb) has the code behind every number and plot.
 
----
+## Use it
 
-## Installation
+Make a CSV with a `decision` column and one column for each person, saying how much they lean towards "yes" (0 to 1, or 0 to 100). "70" means "I'm 70:30 in favour".
 
-Clone the repository and install in editable mode:
+```text
+decision,alice,bob
+couch under the window,0.95,0.40
+get a dog,0.95,0.35
+blinds instead of curtains,0.10,0.65
+...
+```
+
+Then:
 
 ```bash
-git clone https://github.com/dbruwel/optimal-bilateral-preferences.git
-cd optimal-bilateral-preferences
 pip install -e .
+bilateral examples/moving_in.csv
 ```
 
----
+```text
+                               alice       bob
+couch under the window           95%       40%   -> yes
+bed against the far wall         90%       45%   -> yes
+pots in the bottom drawer         5%       55%   -> no
+tv in the bedroom                10%       60%   -> no
+get a dog                        95%       35%   -> yes
+...
 
-## Repository Structure
-
+this split:                     alice 10.2/12 (92%), bob 5.3/12 (18%)
+going with whoever cares more:  alice 10.9/12 (100%), bob 4.9/12 (0%)
 ```
+
+The percentages are how far each person is from their worst case (0%) to their best case (100%). Bob is fairly relaxed about everything, so on the raw scores he doesn't get much. If you think that's because he's underselling how much he cares, add `--normalise`:
+
+```text
+this split:                     alice 7.0/12 (60%), bob 6.3/12 (64%)
+going with whoever cares more:  alice 10.9/12 (100%), bob 4.9/12 (0%)
+```
+
+[notes/findings.md](notes/findings.md#normalising) goes through when that's worth doing and when it isn't. Other options:
+
+```bash
+bilateral decisions.csv --normalise             # Nash welfare on min-max normalised scores
+bilateral decisions.csv --welfare egalitarian   # or utilitarian
+bilateral decisions.csv --method greedy         # brute, greedy, annealing, relaxation, naive
+```
+
+## How it works
+
+Each person's score uses the "50:50 rule": if they're 70:30 in favour of something, doing it gives them 0.7 and not doing it gives them 0.3. Their total score is the sum over every decision, so it's linear in the selection:
+
+$$s_a(\pi) = b_a + m_a \cdot \pi$$
+
+The goal is to pick the 0/1 vector $\pi$ that maximises $s_0 s_1$ (same as $\ln s_0 + \ln s_1$). There are a few solvers in `solvers.py`:
+
+- **brute force**, check all $2^n$ selections.
+- **greedy**, keep flipping whichever decision helps most until nothing does.
+- **simulated annealing**, random flips, sometimes accepting worse ones early on.
+- **continuous relaxation**, let each decision be anywhere in $[0, 1]$, solve that, round.
+
+## In Python
+
+```python
+from optimal_bilateral_preferences import Preferences, simulate, solve
+
+prefs = Preferences.from_leans([0.95, 0.9, 0.1], [0.4, 0.45, 0.65])
+x = solve(prefs)                # brute force up to 20 decisions, greedy after that
+print(x, prefs.scores(x))
+
+x = solve(prefs.normalised())   # same, on min-max normalised scores
+
+prefs = simulate(30)            # two random people who mostly disagree
+```
+
+To run the notebook or the tests:
+
+```bash
+pip install -e ".[notebook,dev]"
+jupyter lab notebooks/main.ipynb
+pytest
+```
+
+## Repository layout
+
+```text
 optimal-bilateral-preferences/
-│
-├── notebooks/                # Jupyter notebooks for exploration and results
-│   └── *.ipynb
-│
-├── paper/                    # Draft paper, figures, and supplementary material
-│   ├── main.pdf
-│   └── ...
-│
+├── examples/
+│   └── moving_in.csv       # the example above
+├── notebooks/
+│   └── main.ipynb          # the exploration: frontier, solvers, comparisons
+├── notes/
+│   ├── findings.md         # the write-up
+│   └── img/                # figures exported from the notebook
 ├── src/
 │   └── optimal_bilateral_preferences/
 │       ├── __init__.py
-│       └── ...
-│
-├── setup.py
-├── pyproject.toml
-└── README.md
+│       ├── cli.py          # the `bilateral` command
+│       ├── problem.py      # preferences, scores and welfare functions
+│       └── solvers.py      # brute force, greedy, annealing, relaxation
+├── tests/
+│   └── test_solvers.py
+├── LICENSE
+├── README.md
+└── pyproject.toml
 ```
-
----
-
-## Disclamer
-This is research-grade code, not a production package. It was completed over a few weeks to explore a specific question of interest. The project does not aim to be novel or comprehensive and was not initially intended for public release. It uses various freely available Python packages under open licenses.
-
----
 
 ## License
 
-MIT License. See `LICENSE` for details.
+MIT License. See the [LICENSE](LICENSE) file for details.
