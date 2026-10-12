@@ -1,6 +1,6 @@
 # Optimal Bilateral Preferences
 
-This started when moving in with someone. There are loads of little decisions (where the couch goes, where the pots live) and it's easy for whoever has stronger opinions to win every one of them, so the other person isn't generally happy with how things end up. So: given a list of yes/no decisions and how two people feel about each, which split is best for *both* of them?
+This started when moving in with someone. There are lots of little decisions (where the couch goes, where the pots live) and it's easy for whoever has stronger opinions to win every one of them, so the other person isn't generally happy with how things end up. So, given a list of yes/no decisions and how two people feel about each, which split is best for *both* of them?
 
 The same thing applies to anything with two sides picking between a bunch of options, like policies affecting two groups.
 
@@ -10,7 +10,7 @@ The same thing applies to anything with two sides picking between a bunch of opt
 
 The full write-up is in [notes/findings.md](notes/findings.md), and the notebook [notebooks/main.ipynb](notebooks/main.ipynb) has the code behind every number and plot.
 
-## Use it
+## Usage
 
 Make a CSV with a `decision` column and one column for each person, saying how much they lean towards "yes" (0 to 1, or 0 to 100). "70" means "I'm 70:30 in favour".
 
@@ -42,7 +42,7 @@ this split:                     alice 10.2/12 (92%), bob 5.3/12 (18%)
 going with whoever cares more:  alice 10.9/12 (100%), bob 4.9/12 (0%)
 ```
 
-The percentages are how far each person is from their worst case (0%) to their best case (100%). Bob is fairly relaxed about everything, so on the raw scores he doesn't get much. If you think that's because he's underselling how much he cares, add `--normalise`:
+The percentages are how far each person is from their worst case (0%) to their best case (100%). Bob is fairly relaxed about everything, so on the raw scores he doesn't get much. If that's because he's underselling how much he cares, adding `--normalise` yields:
 
 ```text
 this split:                     alice 7.0/12 (60%), bob 6.3/12 (64%)
@@ -76,12 +76,12 @@ The goal is to pick the 0/1 vector $\pi$ that maximises $s_0 s_1$ (same as $\ln 
 from optimal_bilateral_preferences import Preferences, simulate, solve
 
 prefs = Preferences.from_leans([0.95, 0.9, 0.1], [0.4, 0.45, 0.65])
-x = solve(prefs)                # brute force up to 20 decisions, greedy after that
+x = solve(prefs)  # brute force up to 20 decisions, greedy after that
 print(x, prefs.scores(x))
 
-x = solve(prefs.normalised())   # same, on min-max normalised scores
+x = solve(prefs.normalised())  # same, on min-max normalised scores
 
-prefs = simulate(30)            # two random people who mostly disagree
+prefs = simulate(30)  # two random people who mostly disagree
 ```
 
 To run the notebook or the tests:

@@ -1,12 +1,12 @@
 # Optimal bilateral preferences
 
-The idea for this came about when moving in with someone. There were heaps of small decisions where we each had a preference: where the couch should go, where the pots live, etc. What I found happened was that whoever had the stronger opinion won, which is fair enough on each decision individually. But if one person has strong opinions on everything and the other is fairly relaxed, the relaxed person loses basically every time.
+The idea for this came about when moving in with someone. There were lots of small decisions where we each had a preference: where the couch should go, where the pots live, etc. What I found happened was that whoever had the stronger opinion won always, which is fair enough on each decision individually, but the small losses for the other person "add up", so they should eventually be able to "cash that in" to win one.
 
 The same thing shows up anywhere two parties pick between a bunch of yes/no options: policies affecting two groups, majority votes, roommates. "Go with whoever cares more" can mean one side always wins. So the question is: given a list of decisions and how each side feels about them, which split is best for *both*?
 
-**Summary:** use Nash welfare (maximise $\ln s_0 + \ln s_1$, the log of each person's score), on the scores people actually give. Whether the relaxed person losing most things is a problem depends on *why* they're relaxed. If they genuinely don't mind, Nash on the raw scores already gets it right. If they do care but don't say so, the inputs are wrong, and that's the only case where normalising is worth doing. The usual way of normalising (scale everyone so their worst case is 0 and best case is 1) is a fairly crude fix for that and goes badly wrong in other cases, so it shouldn't be the default. Finding the optimal split is easy in practice: greedy is optimal in 93-98% of random problems and never more than ~1.5% off, and brute force is fine up to about 20 decisions anyway.
+**Summary:** use Nash welfare (maximise $\ln s_0 + \ln s_1$, the log of each person's score), on the scores people give. Using raw scores means that the more relaxed person still loses often, but not always. Whether the relaxed person losing often is a problem depends on *why* they're relaxed. If they genuinely don't mind, Nash on the raw scores already gets it right. If they do care but don't say so, the inputs are wrong, and normalising is worth considering. One approach for normalising is to scale everyone so their worst case is 0 and best case is 1, this is a fairly crude fix and can sometimes go wrong, so it's not the default and needs justification. Finding the optimal split is easy in practice: greedy is optimal in 93-98% of random problems and never more than ~1.5% off, and brute force is fine up to about 20 decisions.
 
-Most of the numbers and plots below come from [`notebooks/main.ipynb`](../notebooks/main.ipynb). The examples in [Normalising](#normalising) don't, yet.
+Most of the numbers and plots below come from [`notebooks/main.ipynb`](../notebooks/main.ipynb). The examples in [Normalising](#normalising) don't.
 
 ## The setup
 
@@ -108,7 +108,7 @@ In practice the relaxed solution is already (almost) binary. On 100 decisions no
 
 ### How do they compare?
 
-The draft of this said greedy is optimal for a broad class of problems. Checking against brute force on 200 random problems with 16 decisions:
+Checking against brute force on 200 random problems with 16 decisions:
 
 | solver | raw: optimal | raw: worst | normalised: optimal | normalised: worst |
 |---|---:|---:|---:|---:|
@@ -119,11 +119,9 @@ The draft of this said greedy is optimal for a broad class of problems. Checking
 
 "Worst" is the worst welfare as a fraction of the true optimum. "Normalised" is the same problems with each person rescaled so their worst case is 0 and best is 1 (see [Normalising](#normalising)). It's just there as a second, differently shaped set of test problems.
 
-So that claim was a bit strong. Greedy is *nearly* always optimal and never meaningfully off, but it isn't guaranteed. It makes sense that it's close: the frontier's corners can be traced by sorting the decisions by their trade-off $m_{0,i}/m_{1,i}$, which is basically what greedy does. It's when the true optimum sits between two of those corners (the knapsack bit) that greedy can miss.
+Greedy is *nearly* always optimal and never meaningfully off, but it isn't guaranteed. It makes sense that it's close: the frontier's corners can be traced by sorting the decisions by their trade-off $m_{0,i}/m_{1,i}$, which is basically what greedy does. It's when the true optimum sits between two of those corners (the knapsack bit) that greedy can miss.
 
 On bigger problems (50 to 1000 decisions) all three land on the same answer, to 5 decimal places. Greedy and the relaxation take well under a second at 500 decisions. Annealing takes a second or so whatever the size, and greedy gets slow-ish at 1000 (~2s), since every step tries every remaining decision.
-
-In practice: brute force if it's small, greedy otherwise.
 
 ## Normalising
 
@@ -145,7 +143,6 @@ Naive gives Alice everything, and Nash on the raw scores only gives Bob one deci
 
 On the raw scale (left) the frontier is long and flat, so the Nash curve touches it way over at Alice's end. Normalised, they both end up about 60% of the way to everything they wanted.
 
-My first take was that this means you should always normalise. I don't think that holds up. The normalised answer looks nicer here, but it isn't justified just because it looks nicer. Whether the raw answer is wrong depends on why Bob's leans are close to 0.5.
 
 ### What normalising actually does
 
@@ -197,10 +194,11 @@ So this is the case where normalising is justified. But what it's doing is corre
 - Decisions that interact (the couch position depends on where the TV goes). The scores stop being linear, but brute force and annealing don't care.
 - More than two people. Nash welfare generalises fine (sum of everyone's logs), and so do all the solvers.
 - Tracing the frontier with greedy instead of brute force, then picking the best point on it.
+- Looking into options for scoring that can't be "gamed" by people (c.f. Vickrey-Clarke-Groves mechanism)
 
 ## Bugs
 
-The first notebook version had a couple of bugs:
+The first version had a couple of bugs:
 
 - **Greedy added the wrong policy.** It found the best policy to add, then updated the scores using whatever policy the loop happened to finish on. When everyone agrees, it would end up implementing things nobody wanted. There's a test for this now.
 - **The brute force used** $\ln(s_0 + s_1)$ instead of $\ln(s_0) + \ln(s_1)$, so it was actually finding the naive (utilitarian) answer, not the Nash one.
