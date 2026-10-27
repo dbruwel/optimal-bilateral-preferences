@@ -1,0 +1,3 @@
+Nothing seems to make a big difference, and Nash welfare under a greedy algorithm seems to be the best approach.
+
+I'll write more details oneday...
