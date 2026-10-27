@@ -1,18 +1,11 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "optimal_bilateral_preferences"
-version = "0.1.0"
-dependencies = ["numpy", "scipy"]
-
-[project.scripts]
-bilateral = "optimal_bilateral_preferences.cli:main"
-
-[project.optional-dependencies]
-dev = ["pytest>=8.0"]
-notebook = ["jupyterlab", "matplotlib"]
+version = "0.1"
+dependencies = []
 
 [tool.setuptools.packages.find]
 where = ["src"]
